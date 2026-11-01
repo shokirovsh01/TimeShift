@@ -20,4 +20,10 @@ urlpatterns = [
 
     path('buy-pro/', BuyProView.as_view(), name='buy_pro'),
     path('about/', AboutUsView.as_view(), name='about_us'),
+
+    # редактирование своего профиля
+    path('profile/edit/', ProfileUpdateView.as_view(), name='edit_profile'),
+
+    # публичная страница профиля другого пользователя (подписка / просмотр)
+    path('user/<str:username>/', UserProfileView.as_view(), name='user_profile'),
 ]

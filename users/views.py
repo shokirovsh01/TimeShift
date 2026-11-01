@@ -4,11 +4,12 @@ from django.contrib.auth.models import User
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import View
-from django.shortcuts import redirect,get_object_or_404
+from django.shortcuts import redirect,get_object_or_404,render
 from datetime import timedelta
 from django.contrib import messages
 from django.views.generic import *
 from .models import *
+from .forms import ProfileEditForm
 
 
 
@@ -39,11 +40,12 @@ class CollectBonusView(LoginRequiredMixin,View):
             messages.error(request,'Дневной лимит исчерпан. Приходи завтра!')
             return redirect('profile')
         
-        if profile.last_bonus_date:
-            time_passed = now - profile.last_bonus_time
-            if time_passed < timedelta(minutes=20):
-                messages.warning(request,'20 минут еще не прошло!')
-                return redirect('profile')
+        if profile.last_bonus_time is not None:
+            if hasattr(profile.last_bonus_time, 'time'): 
+                time_passed = now - profile.last_bonus_time
+                if time_passed < timedelta(minutes=20):
+                    messages.warning(request, "20 минут еще не прошло!")
+                    return redirect('profile')
 
         profile.balance_minutes += 20
         profile.daily_bonus_minutes += 20
@@ -136,4 +138,47 @@ class BuyProView(LoginRequiredMixin,View):
 
 class AboutUsView(TemplateView):
     template_name = 'users/about_us.html'
-    
+
+
+class ProfileUpdateView(LoginRequiredMixin, View):
+    """Редактирование своего профиля: данные + аватар."""
+
+    def get(self, request):
+        user = request.user
+        # заполняем форму текущими значениями
+        form = ProfileEditForm(user=user, initial={
+            'username': user.username,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'specialization': user.profile.specialization,
+            'bio': user.profile.bio or '',
+            'telegram_username': user.profile.telegram_username or '',
+        })
+        return render(request, 'users/profile_edit.html', {'form': form})
+
+    def post(self, request):
+        # request.FILES — обязательно для загрузки аватара
+        form = ProfileEditForm(request.POST, request.FILES, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Профиль обновлён!')
+            return redirect('profile')
+        return render(request, 'users/profile_edit.html', {'form': form})
+
+
+class UserProfileView(DetailView):
+    """Публичная страница профиля другого пользователя (для подписки и просмотра)."""
+    model = User
+    template_name = 'users/user_profile.html'
+    context_object_name = 'profile_user'
+    slug_field = 'username'
+    slug_url_kwarg = 'username'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # подписан ли текущий юзер на владельца страницы (для кнопки)
+        context['is_following'] = (
+            self.request.user.is_authenticated
+            and self.request.user.following.filter(following=self.object).exists()
+        )
+        return context

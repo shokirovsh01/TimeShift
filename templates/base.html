@@ -3,52 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevTime — Платформа цифрового бартера</title>
+    <title>TimeShift — платформа тайм-банкинга</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-display: 'Space Grotesk', system-ui, sans-serif;
+            --font-body: 'Inter', system-ui, sans-serif;
+        }
+        body { font-family: var(--font-body); }
+        h1, h2, h3, .font-display { font-family: var(--font-display); }
+
+        /* ====== Анимации (чистый CSS, без JS) ====== */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-12px) scale(.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes floatY {
+            0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+            50% { transform: translate3d(0, -28px, 0) scale(1.06); }
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, .4); }
+            50% { box-shadow: 0 0 28px 6px rgba(16, 185, 129, .22); }
+        }
+        @keyframes indigoGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, .35); }
+            50% { box-shadow: 0 0 26px 6px rgba(99, 102, 241, .2); }
+        }
+        @keyframes shimmer {
+            0% { background-position: -220% 0; }
+            100% { background-position: 220% 0; }
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes bob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-7px); }
+        }
+        @keyframes spinSlow {
+            to { transform: rotate(360deg); }
+        }
+        .spin-slow { animation: spinSlow linear infinite; }
+
+        /* появление контента */
+        .anim-in { animation: fadeUp .6s cubic-bezier(.22, 1, .36, 1) both; }
+        .d1 { animation-delay: .05s; }
+        .d2 { animation-delay: .12s; }
+        .d3 { animation-delay: .19s; }
+        .d4 { animation-delay: .26s; }
+        .d5 { animation-delay: .33s; }
+        .d6 { animation-delay: .40s; }
+
+        /* сообщения */
+        .anim-msg { animation: slideDown .45s cubic-bezier(.22, 1, .36, 1) both; }
+
+        /* фоновые орбы */
+        .orb {
+            position: fixed;
+            border-radius: 9999px;
+            filter: blur(90px);
+            opacity: .5;
+            pointer-events: none;
+            z-index: 0;
+            animation: floatY 14s ease-in-out infinite;
+        }
+        .orb-2 { animation-duration: 18s; animation-delay: -6s; }
+        .orb-3 { animation-duration: 22s; animation-delay: -12s; }
+
+        /* тонкая сетка на фоне */
+        .bg-grid {
+            background-image:
+                linear-gradient(rgba(99, 102, 241, .05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, .05) 1px, transparent 1px);
+            background-size: 44px 44px;
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 75%);
+            -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 75%);
+        }
+
+        /* кнопки: подъём + свечение */
+        .btn { transition: transform .18s ease, box-shadow .25s ease, background-color .2s ease, filter .2s ease; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: translateY(0) scale(.98); }
+        .btn-glow-indigo:hover { box-shadow: 0 8px 30px -6px rgba(99, 102, 241, .55); }
+        .btn-glow-emerald:hover { box-shadow: 0 8px 30px -6px rgba(16, 185, 129, .5); }
+        .btn-glow-amber:hover { box-shadow: 0 8px 30px -6px rgba(251, 191, 36, .45); }
+
+        /* карточки: подъём + рамка */
+        .card { transition: transform .25s ease, box-shadow .3s ease, border-color .3s ease; }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 40px -18px rgba(0, 0, 0, .65), 0 0 0 1px rgba(99, 102, 241, .25);
+        }
+
+        /* ссылки навбара с анимацией подчёркивания */
+        .nav-link { position: relative; transition: color .2s ease; }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            left: 12px; right: 12px; bottom: 4px;
+            height: 2px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, #6366f1, #34d399);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform .25s cubic-bezier(.22, 1, .36, 1);
+        }
+        .nav-link:hover::after { transform: scaleX(1); }
+
+        /* пульс тайм-крана */
+        .pulse-emerald { animation: pulseGlow 2.4s ease-in-out infinite; }
+        .pulse-indigo { animation: indigoGlow 2.8s ease-in-out infinite; }
+
+        /* shimmer для PRO */
+        .shimmer-text {
+            background: linear-gradient(100deg, #fbbf24 20%, #fef3c7 40%, #f59e0b 60%, #fbbf24 80%);
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+        .shimmer-bar {
+            background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,.45) 50%, transparent 80%);
+            background-size: 200% 100%;
+            animation: shimmer 2.6s linear infinite;
+        }
+
+        /* градиент, переливающийся у героя */
+        .gradient-shift {
+            background: linear-gradient(90deg, #34d399, #38bdf8, #818cf8, #34d399);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: gradientShift 7s ease infinite;
+        }
+
+        /* лёгкое покачивание иконок */
+        .bob { animation: bob 3.2s ease-in-out infinite; }
+
+        /* горизонтальный скролл пилюль на мобилке (без скроллбара) */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+<body class="bg-slate-950 text-slate-300 min-h-screen flex flex-col relative overflow-x-hidden selection:bg-indigo-500 selection:text-white">
 
-    <!-- Стильный Навбар -->
-    <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="{% url 'bounty_list' %}" class="flex items-center gap-2.5 group">
-                <span class="bg-indigo-600 text-white p-2 rounded-xl shadow-lg shadow-indigo-500/30 group-hover:bg-indigo-500 transition">⚡</span>
-                <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-400 bg-clip-text text-transparent">
-                    DevTime
-                </span>
-            </a>
+    <!-- Фоновые орбы -->
+    <div class="orb w-72 h-72 bg-indigo-600/40 -top-16 -left-16" aria-hidden="true"></div>
+    <div class="orb orb-2 w-96 h-96 bg-emerald-600/25 top-1/3 -right-24" aria-hidden="true"></div>
+    <div class="orb orb-3 w-64 h-64 bg-sky-500/20 bottom-0 left-1/4" aria-hidden="true"></div>
 
-            <div class="flex items-center gap-4">
-                {% if user.is_authenticated %}
-                    <div class="flex items-center gap-3 bg-slate-900/90 px-4 py-2 rounded-xl border border-slate-800 shadow-inner text-sm">
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-emerald-400 font-semibold">⏳ {{ user.profile.time_balance }} ч.</span>
+    <!-- Navbar -->
+    <header class="sticky top-0 z-50 border-b border-white/5 bg-slate-950/70 backdrop-blur-xl">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5">
+            <div class="flex justify-between items-center gap-3">
+
+                <!-- Логотип -->
+                <a href="{% url 'bounty_list' %}" class="flex items-center gap-2.5 group shrink-0 anim-in">
+                    <span class="bg-gradient-to-br from-indigo-500 to-violet-600 text-white p-2 rounded-xl shadow-lg shadow-indigo-500/30 group-hover:rotate-12 transition-transform duration-300">⚡</span>
+                    <span class="text-lg sm:text-xl font-bold tracking-tight font-display bg-gradient-to-r from-white via-slate-200 to-indigo-400 bg-clip-text text-transparent">
+                        TimeShift
+                    </span>
+                </a>
+
+                <!-- Десктоп-навигация -->
+                <nav class="hidden md:flex items-center gap-1 text-sm font-medium anim-in d1">
+                    <a href="{% url 'bounty_list' %}" class="nav-link px-3 py-2 rounded-lg text-slate-300 hover:text-white">Задачи</a>
+                    <a href="{% url 'leaderboard' %}" class="nav-link px-3 py-2 rounded-lg text-slate-300 hover:text-white">Топ</a>
+                    <a href="{% url 'about_us' %}" class="nav-link px-3 py-2 rounded-lg text-slate-300 hover:text-white">О нас</a>
+                </nav>
+
+                <!-- Действия -->
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0 anim-in d2">
+                    {% if user.is_authenticated %}
+                        <div class="hidden sm:flex items-center gap-1.5 bg-slate-900/80 px-3.5 py-2 rounded-xl border border-emerald-500/20 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,.04)]">
+                            <span class="text-emerald-400 font-semibold tabular-nums">⏳ {{ user.profile.formatted_balance }}</span>
                         </div>
-                        <span class="text-slate-700">|</span>
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-amber-400 font-semibold">⭐ {{ user.profile.reputation }}</span>
-                        </div>
-                    </div>
-                   <a href="{% url 'profile' %}" class="text-slate-300 hover:text-indigo-400 text-sm font-medium transition">
-    {{ user.username }}
-</a>
-                {% else %}
-                    <a href="/admin/" class="text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl font-medium transition shadow-lg shadow-indigo-600/20">
-                        Войти в панель
-                    </a>
-                {% endif %}
+                        <a href="{% url 'profile' %}" class="hidden sm:block text-sm font-medium text-slate-300 hover:text-indigo-400 transition max-w-[110px] truncate">
+                            {{ user.username }}
+                        </a>
+                        <form method="POST" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn text-xs sm:text-sm font-medium bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white px-3 sm:px-4 py-2 rounded-xl border border-white/10 transition">
+                                Выход
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="btn text-sm font-medium text-slate-300 hover:text-white px-3 sm:px-4 py-2 rounded-xl hover:bg-white/5 transition">
+                            Вход
+                        </a>
+                        <a href="{% url 'register' %}" class="btn btn-glow-indigo text-sm font-semibold bg-indigo-500 hover:bg-indigo-400 text-white px-4 py-2 rounded-xl shadow-lg shadow-indigo-500/25">
+                            Регистрация
+                        </a>
+                    {% endif %}
+                </div>
             </div>
+
+            <!-- Мобильная навигация: горизонтальный скролл-пилюли (без JS) -->
+            <nav class="md:hidden flex gap-2 mt-3 overflow-x-auto no-scrollbar text-sm font-medium anim-in d3 -mx-4 px-4 sm:mx-0 sm:px-0">
+                <a href="{% url 'bounty_list' %}" class="px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 transition whitespace-nowrap">Задачи</a>
+                <a href="{% url 'leaderboard' %}" class="px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 transition whitespace-nowrap">Топ</a>
+                <a href="{% url 'about_us' %}" class="px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 transition whitespace-nowrap">О нас</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'profile' %}" class="px-3.5 py-1.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 whitespace-nowrap">Профиль</a>
+                {% endif %}
+            </nav>
         </div>
     </header>
 
-    <!-- Основной контейнер -->
-    <main class="max-w-6xl mx-auto px-6 py-10 flex-grow w-full">
+    <!-- Django messages (без JS — блоки при загрузке страницы, с CSS slide-in) -->
+    {% if messages %}
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-6 w-full space-y-3 relative z-10">
+            {% for message in messages %}
+                <div class="anim-msg flex items-start gap-3 rounded-xl border px-4 py-3.5 text-sm font-medium shadow-2xl backdrop-blur
+                    {% if message.tags == 'success' %}bg-emerald-500/10 border-emerald-500/30 text-emerald-200
+                    {% elif message.tags == 'error' %}bg-rose-500/10 border-rose-500/30 text-rose-200
+                    {% elif message.tags == 'warning' %}bg-amber-500/10 border-amber-500/30 text-amber-200
+                    {% else %}bg-indigo-500/10 border-indigo-500/30 text-indigo-200{% endif %}">
+                    <span class="shrink-0 mt-0.5 text-base leading-none">
+                        {% if message.tags == 'success' %}✓{% elif message.tags == 'error' %}✕{% elif message.tags == 'warning' %}⚠{% else %}ℹ{% endif %}
+                    </span>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Основной контент -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10 flex-grow w-full relative z-10">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Футер -->
-    <footer class="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500">
-        DevTime &copy; 2026 — Платформа умного обмена знаниями и временем
+    <footer class="border-t border-white/5 py-7 text-center text-xs text-slate-500 relative z-10">
+        <div class="flex items-center justify-center gap-2 mb-1.5">
+            <span class="text-indigo-400 bob">⚡</span>
+            <span class="font-display font-semibold text-slate-400 tracking-tight">TimeShift</span>
+        </div>
+        © 2026 — тайм-банкинг, где валюта — твоё время
     </footer>
 
 </body>

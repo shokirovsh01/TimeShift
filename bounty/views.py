@@ -107,9 +107,8 @@ class CompleteTaskView(LoginRequiredMixin,View):
 
         HelpContract.objects.create(
             task=task,
-            customer=task.creator,
-            contractor=task.performer,
-            minutes_transferred=task.reward_minutes
+            helper=task.performer,
+            helped_user=task.creator,
             )
 
         quest, created = DailyQuestProgress.objects.get_or_create(

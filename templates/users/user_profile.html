@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% with profile=profile_user.profile %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+    <!-- Шапка профиля -->
+    <div class="anim-in card relative overflow-hidden bg-gradient-to-b from-slate-900 to-slate-900/70 border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6 shadow-2xl shadow-black/40">
+        <div class="absolute -top-24 -right-16 w-64 h-64 bg-indigo-600/15 blur-3xl rounded-full pointer-events-none" aria-hidden="true"></div>
+
+        <!-- Аватар -->
+        <div class="relative shrink-0">
+            <div class="absolute -inset-1 rounded-3xl bg-gradient-to-tr from-indigo-500 via-emerald-400 to-sky-400 opacity-60 blur-[2px] spin-slow" style="animation-duration: 9s;" aria-hidden="true"></div>
+            {% if profile.avatar %}
+                <img src="{{ profile.avatar.url }}" alt="Аватар {{ profile_user.username }}"
+                     class="relative w-24 h-24 rounded-3xl object-cover border-2 border-slate-950">
+            {% else %}
+                <div class="relative w-24 h-24 rounded-3xl bg-slate-950 text-indigo-400 flex items-center justify-center text-3xl font-bold font-display border-2 border-slate-950">
+                    {{ profile_user.username|slice:":2"|upper }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="text-center sm:text-left flex-grow relative">
+            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                <h1 class="text-2xl sm:text-3xl font-bold text-white font-display">{{ profile_user.username }}</h1>
+                {% if profile.is_pro %}
+                    <span class="inline-flex items-center bg-gradient-to-r from-amber-400/20 to-yellow-500/20 border border-amber-400/40 text-[11px] font-bold tracking-wide px-3 py-1 rounded-full overflow-hidden relative">
+                        <span class="shimmer-bar absolute inset-0 pointer-events-none" aria-hidden="true"></span>
+                        <span class="shimmer-text">★ PRO</span>
+                    </span>
+                {% endif %}
+            </div>
+            {% if profile.specialization %}
+                <p class="text-slate-400 text-sm mt-1.5">{{ profile.specialization }}</p>
+            {% else %}
+                <p class="text-slate-500 text-sm mt-1.5">Участник сообщества TimeShift</p>
+            {% endif %}
+            {% if profile_user.first_name %}
+                <p class="text-slate-500 text-xs mt-1">{{ profile_user.first_name }} {% if profile_user.last_name %}{{ profile_user.last_name }}{% endif %}</p>
+            {% endif %}
+
+            <!-- Статистика -->
+            <div class="flex flex-wrap justify-center sm:justify-start gap-3 mt-4">
+                <div class="bg-slate-950/80 px-4 py-2.5 rounded-2xl border border-emerald-500/20 text-sm">
+                    Баланс: <span class="text-emerald-400 font-bold tabular-nums">{{ profile.formatted_balance }}</span>
+                </div>
+                <div class="bg-slate-950/80 px-4 py-2.5 rounded-2xl border border-amber-500/20 text-sm">
+                    Репутация: <span class="text-amber-400 font-bold tabular-nums">{{ profile.reputation }}/10</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Действия -->
+        <div class="shrink-0 w-full sm:w-auto relative">
+            {% if user.is_authenticated %}
+                {% if profile_user == user %}
+                    <!-- это свой профиль -->
+                    <a href="{% url 'edit_profile' %}"
+                       class="btn block w-full text-center bg-white/5 hover:bg-white/10 text-white text-sm font-semibold px-6 py-3 rounded-2xl border border-white/10 transition">
+                        ✎ Редактировать
+                    </a>
+                {% else %}
+                    <!-- подписка на чужой профиль -->
+                    <form method="POST" action="{% url 'toggle_follow' profile_user.username %}">
+                        {% csrf_token %}
+                        {% if is_following %}
+                            <button type="submit"
+                                    class="btn block w-full text-center bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-sm font-semibold px-6 py-3 rounded-2xl transition">
+                                ✓ Вы подписаны
+                            </button>
+                        {% else %}
+                            <button type="submit"
+                                    class="btn btn-glow-indigo block w-full text-center bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-semibold px-6 py-3 rounded-2xl shadow-lg shadow-indigo-500/25">
+                                Подписаться
+                            </button>
+                        {% endif %}
+                    </form>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'login' %}"
+                   class="btn block w-full text-center bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-semibold px-6 py-3 rounded-2xl shadow-lg shadow-indigo-500/25">
+                    Войти, чтобы подписаться
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- О себе -->
+    {% if profile.bio %}
+        <div class="anim-in d1 card bg-slate-900/70 border border-white/5 rounded-3xl p-6 shadow-2xl shadow-black/40 backdrop-blur">
+            <h2 class="text-white font-bold font-display mb-2 flex items-center gap-2">
+                <span class="bob">👤</span> О себе
+            </h2>
+            <p class="text-slate-400 text-sm leading-relaxed whitespace-pre-line">{{ profile.bio }}</p>
+            {% if profile.telegram_username %}
+                <p class="text-slate-500 text-xs mt-4">Telegram: <a href="tg://resolve?domain={{ profile.telegram_username|cut:'@' }}" class="text-indigo-400 hover:text-indigo-300 transition font-medium">@{{ profile.telegram_username|cut:'@' }}</a></p>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <!-- Задачи пользователя -->
+    <div class="anim-in d2 card bg-slate-900/70 border border-white/5 rounded-3xl p-6 shadow-2xl shadow-black/40 backdrop-blur">
+        <h2 class="text-white font-bold font-display mb-4 flex items-center gap-2">
+            <span class="bob" style="animation-delay:.4s;">📋</span> Задачи от {{ profile_user.username }}
+        </h2>
+        <div class="space-y-3">
+            {% for task in profile_user.created_tasks.all %}
+                <div class="bg-slate-950/60 border border-white/5 rounded-2xl px-4 py-3.5 flex flex-wrap justify-between items-center gap-3 hover:border-indigo-500/30 transition-all duration-200">
+                    <div class="min-w-0">
+                        <h4 class="text-sm font-semibold text-white truncate">{{ task.title }}</h4>
+                        <span class="text-xs text-slate-500 tabular-nums">Награда: {{ task.reward_minutes }} мин.</span>
+                    </div>
+                    <span class="text-xs px-3 py-1 rounded-full font-semibold border
+                        {% if task.status == 'open' %}bg-emerald-500/10 text-emerald-300 border-emerald-500/25
+                        {% elif task.status == 'in_progress' %}bg-amber-500/10 text-amber-300 border-amber-500/25
+                        {% else %}bg-white/5 text-slate-400 border-white/10{% endif %}">
+                        {{ task.get_status_display }}
+                    </span>
+                </div>
+            {% empty %}
+                <p class="text-slate-500 text-sm">Пока нет созданных задач.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endwith %}
+{% endblock %}

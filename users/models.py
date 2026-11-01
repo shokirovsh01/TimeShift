@@ -21,8 +21,8 @@ class Profile(models.Model):
     balance_minutes = models.PositiveIntegerField(default=60)
     reputation = models.PositiveIntegerField(default=0)
     daily_bonus_minutes = models.PositiveIntegerField(default=0)
-    last_bonus_date = models.DateTimeField(null=True,blank=True)
-    last_bonus_time = models.DateField(null=True,blank=True)
+    last_bonus_date = models.DateField(null=True,blank=True)
+    last_bonus_time = models.DateTimeField(null=True,blank=True)
 
     is_pro = models.BooleanField(default=False,verbose_name='PRO-status')
     daily_spent_minutes = models.PositiveIntegerField(default=0)

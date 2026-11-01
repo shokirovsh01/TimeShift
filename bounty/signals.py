@@ -8,19 +8,19 @@ from users.models import *
 def process_help_contract(sender,instance,created,**kwargs):
     if created:
         task=instance.task
-        reward=task.reward_hours
+        reward=task.reward_minutes
 
         helper_profile, _ = Profile.objects.get_or_create(user=instance.helper)
         helped_profile, _ = Profile.objects.get_or_create(user=instance.helped_user)
 
         with transaction.atomic():
-            if helped_profile.time_balance >= reward:
-                helped_profile.time_balance -= reward
+            if helped_profile.balance_minutes >= reward:
+                helped_profile.balance_minutes -= reward
             else:
-                helped_profile.time_balance = 0
+                helped_profile.balance_minutes = 0
             helped_profile.save()
 
-            helper_profile.time_balance += reward
+            helper_profile.balance_minutes += reward
             helper_profile.reputation += 10
             helper_profile.save()
 

@@ -1,74 +1,194 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto space-y-8">
-    
+{% with profile=profile_user.profile %}
+<div class="max-w-4xl mx-auto space-y-6 sm:space-y-8">
+
     <!-- Шапка профиля -->
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6 shadow-xl">
-        <div class="w-20 h-20 rounded-2xl bg-indigo-600/30 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-2xl font-black">
-            {{ profile_user.username|slice:":2"|upper }}
-        </div>
-        
-        <div class="text-center sm:text-left flex-grow">
-            <h1 class="text-2xl font-bold text-white">{{ profile_user.username }}</h1>
-            <p class="text-slate-400 text-sm mt-1">Участник IT-сообщества DevTime</p>
-            
-            <div class="flex flex-wrap justify-center sm:justify-start gap-4 mt-4">
-                <div class="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 text-sm">
-                    ⏳ Баланс: <span class="text-emerald-400 font-bold">{{ profile_user.profile.time_balance }} ч.</span>
+    <div class="anim-in card relative overflow-hidden bg-gradient-to-b from-slate-900 to-slate-900/70 border border-white/5 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6 shadow-2xl shadow-black/40">
+        <!-- декоративное свечение -->
+        <div class="absolute -top-24 -right-16 w-64 h-64 bg-indigo-600/20 blur-3xl rounded-full pointer-events-none" aria-hidden="true"></div>
+
+        <!-- Аватар с анимированной градиентной рамкой -->
+        <div class="relative shrink-0">
+            <div class="absolute -inset-1 rounded-3xl bg-gradient-to-tr from-indigo-500 via-emerald-400 to-sky-400 opacity-70 blur-[2px] spin-slow" style="animation-duration: 8s;" aria-hidden="true"></div>
+            {% if profile.avatar %}
+                <img src="{{ profile.avatar.url }}" alt="Аватар {{ profile_user.username }}"
+                     class="relative w-24 h-24 rounded-3xl object-cover border-2 border-slate-950">
+            {% else %}
+                <div class="relative w-24 h-24 rounded-3xl bg-slate-950 text-indigo-400 flex items-center justify-center text-3xl font-bold font-display border-2 border-slate-950">
+                    {{ profile_user.username|slice:":2"|upper }}
                 </div>
-                <div class="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 text-sm">
-                    ⭐ Репутация: <span class="text-amber-400 font-bold">{{ profile_user.profile.reputation }}</span>
+            {% endif %}
+        </div>
+
+        <div class="text-center sm:text-left flex-grow relative">
+            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3">
+                <h1 class="text-2xl sm:text-3xl font-bold text-white font-display">{{ profile_user.username }}</h1>
+                {% if profile.is_pro %}
+                    <span class="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400/20 to-yellow-500/20 border border-amber-400/40 text-[11px] font-bold tracking-wide px-3 py-1 rounded-full overflow-hidden relative">
+                        <span class="shimmer-bar absolute inset-0 pointer-events-none" aria-hidden="true"></span>
+                        <span class="shimmer-text">★ PRO</span>
+                    </span>
+                {% endif %}
+            </div>
+            {% if profile.specialization %}
+                <p class="text-slate-400 text-sm mt-1.5">{{ profile.specialization }}</p>
+            {% else %}
+                <p class="text-slate-500 text-sm mt-1.5">Участник сообщества TimeShift</p>
+            {% endif %}
+            {% if profile.bio %}
+                <p class="text-slate-500 text-sm mt-1">{{ profile.bio }}</p>
+            {% endif %}
+
+            <!-- Баланс и репутация -->
+            <div class="flex flex-wrap justify-center sm:justify-start gap-3 mt-4">
+                <div class="bg-slate-950/80 px-4 py-2.5 rounded-2xl border border-emerald-500/20 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,.03)]">
+                    Баланс: <span class="text-emerald-400 font-bold tabular-nums">{{ profile.formatted_balance }}</span>
+                </div>
+                <div class="bg-slate-950/80 px-4 py-2.5 rounded-2xl border border-amber-500/20 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,.03)]">
+                    Репутация: <span class="text-amber-400 font-bold tabular-nums">{{ profile.reputation }}/10</span>
                 </div>
             </div>
         </div>
+
+        <!-- Действие: только редактирование (свой профиль) -->
+        <div class="shrink-0 w-full sm:w-auto relative">
+            <a href="{% url 'edit_profile' %}"
+               class="btn block w-full text-center bg-white/5 hover:bg-white/10 text-white text-sm font-semibold px-6 py-3 rounded-2xl border border-white/10 transition">
+                ✎ Редактировать профиль
+            </a>
+        </div>
     </div>
 
-    <!-- Задачи пользователя -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Созданные задачи -->
-        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
-            <h2 class="text-lg font-bold text-white mb-4">Мои запросы</h2>
-            <div class="space-y-3">
-                {% for task in profile_user.created_tasks.all %}
-                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 flex justify-between items-center">
-                        <div>
-                            <h4 class="text-sm font-semibold text-white">{{ task.title }}</h4>
-                            <span class="text-xs text-slate-400">Награда: {{ task.reward_hours }} ч.</span>
-                        </div>
-                        <span class="text-xs px-2.5 py-1 rounded-full font-medium
-                            {% if task.status == 'open' %}bg-emerald-500/10 text-emerald-400
-                            {% elif task.status == 'in_progress' %}bg-amber-500/10 text-amber-400
-                            {% else %}bg-slate-800 text-slate-400{% endif %}">
-                            {{ task.get_status_display }}
-                        </span>
-                    </div>
-                {% empty %}
-                    <p class="text-slate-500 text-sm">Вы еще не создавали задач.</p>
-                {% endfor %}
+
+        <!-- Тайм-кран -->
+        <div class="anim-in d1 card bg-slate-900/70 border border-white/5 rounded-3xl p-6 shadow-2xl shadow-black/40 backdrop-blur">
+            <div class="flex items-center justify-between mb-1">
+                <h2 class="text-lg font-bold text-white font-display flex items-center gap-2">
+                    <span class="bob text-xl">⛽</span> Тайм-кран
+                </h2>
+                <span class="text-xs font-bold text-emerald-300 bg-emerald-500/10 border border-emerald-500/25 px-3 py-1 rounded-full">+20 мин</span>
             </div>
+            <p class="text-sm text-slate-400 mb-5">Забирай бесплатное время раз в 20 минут. Дневной лимит — 300 мин.</p>
+
+            {% widthratio profile.daily_bonus_minutes 300 100 as faucet_pct %}
+            <div class="mb-6">
+                <div class="flex justify-between text-xs text-slate-400 mb-2">
+                    <span>Получено сегодня</span>
+                    <span class="font-semibold text-slate-200 tabular-nums">{{ profile.daily_bonus_minutes }} / 300 мин.</span>
+                </div>
+                <div class="h-3 bg-slate-950 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                    <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-300 rounded-full transition-all duration-700 relative"
+                         style="width: {{ faucet_pct|floatformat:0 }}%;">
+                        <span class="absolute inset-0 shimmer-bar" aria-hidden="true"></span>
+                    </div>
+                </div>
+            </div>
+
+            <a href="{% url 'collect_bonus' %}"
+               class="btn pulse-emerald block w-full text-center bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-sm px-5 py-4 rounded-2xl shadow-xl shadow-emerald-500/20">
+                Получить бонус +20 мин
+            </a>
         </div>
 
-        <!-- Задачи, где помогал -->
-        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
-            <h2 class="text-lg font-bold text-white mb-4">Взятые в работу</h2>
-            <div class="space-y-3">
-                {% for task in profile_user.assigned_tasks.all %}
-                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 flex justify-between items-center">
-                        <div>
-                            <h4 class="text-sm font-semibold text-white">{{ task.title }}</h4>
-                            <span class="text-xs text-slate-400">Заказчик: {{ task.creator.username }}</span>
-                        </div>
-                        <span class="text-xs px-2.5 py-1 rounded-full font-medium bg-amber-500/10 text-amber-400">
-                            {{ task.get_status_display }}
+        <!-- Ежедневные квесты -->
+        <div class="anim-in d2 card bg-slate-900/70 border border-white/5 rounded-3xl p-6 shadow-2xl shadow-black/40 backdrop-blur">
+            <div class="flex items-center justify-between mb-1">
+                <h2 class="text-lg font-bold text-white font-display flex items-center gap-2">
+                    <span class="bob text-xl" style="animation-delay:.6s;">🎯</span> Ежедневные квесты
+                </h2>
+                <span class="text-xs font-bold text-indigo-300 bg-indigo-500/10 border border-indigo-500/25 px-3 py-1 rounded-full">+60 мин</span>
+            </div>
+            <p class="text-sm text-slate-400 mb-5">Выполни три задания за день — получи награду на баланс.</p>
+
+            {% with quest=profile_user.quest_progress.last %}
+            <ul class="space-y-3">
+                <!-- Квест 1: создать задачу -->
+                <li class="flex items-center justify-between gap-3 bg-slate-950/60 border border-white/5 rounded-2xl px-4 py-3.5 hover:border-indigo-500/30 hover:bg-slate-950 transition-all duration-200">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 transition-colors
+                            {% if quest.created_tasks >= 1 %}bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/30{% else %}bg-white/5 text-slate-400 border border-white/10{% endif %}">
+                            {% if quest.created_tasks >= 1 %}✓{% else %}1{% endif %}
+                        </span>
+                        <span class="text-sm truncate {% if quest.created_tasks >= 1 %}text-slate-500 line-through{% else %}text-slate-200{% endif %}">
+                            Создать задачу
                         </span>
                     </div>
-                {% empty %}
-                    <p class="text-slate-500 text-sm">Вы еще не брали задачи в работу.</p>
-                {% endfor %}
+                    <a href="{% url 'create_task' %}" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition shrink-0">Создать →</a>
+                </li>
+
+                <!-- Квест 2: закрыть задачу -->
+                <li class="flex items-center justify-between gap-3 bg-slate-950/60 border border-white/5 rounded-2xl px-4 py-3.5 hover:border-indigo-500/30 hover:bg-slate-950 transition-all duration-200">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 transition-colors
+                            {% if quest.completed_tasks >= 1 %}bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/30{% else %}bg-white/5 text-slate-400 border border-white/10{% endif %}">
+                            {% if quest.completed_tasks >= 1 %}✓{% else %}2{% endif %}
+                        </span>
+                        <span class="text-sm truncate {% if quest.completed_tasks >= 1 %}text-slate-500 line-through{% else %}text-slate-200{% endif %}">
+                            Закрыть задачу
+                        </span>
+                    </div>
+                    <a href="{% url 'bounty_list' %}" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition shrink-0">Открыть →</a>
+                </li>
+
+                <!-- Квест 3: тайм-кран -->
+                <li class="flex items-center justify-between gap-3 bg-slate-950/60 border border-white/5 rounded-2xl px-4 py-3.5 hover:border-indigo-500/30 hover:bg-slate-950 transition-all duration-200">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="w-7 h-7 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 transition-colors
+                            {% if quest.faucet_clicks >= 1 %}bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/30{% else %}bg-white/5 text-slate-400 border border-white/10{% endif %}">
+                            {% if quest.faucet_clicks >= 1 %}✓{% else %}3{% endif %}
+                        </span>
+                        <span class="text-sm truncate {% if quest.faucet_clicks >= 1 %}text-slate-500 line-through{% else %}text-slate-200{% endif %}">
+                            Забрать бонус тайм-крана
+                        </span>
+                    </div>
+                    <a href="{% url 'collect_bonus' %}" class="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition shrink-0">Забрать →</a>
+                </li>
+            </ul>
+
+            <!-- Прогресс дня: 3 сегмента -->
+            <div class="mt-6">
+                <div class="flex justify-between text-xs text-slate-400 mb-2">
+                    <span>Прогресс дня</span>
+                    {% if quest.is_reward_claimed %}
+                        <span class="text-emerald-400 font-semibold">Награда получена ✓</span>
+                    {% else %}
+                        <span>Все три квеста → +60 мин</span>
+                    {% endif %}
+                </div>
+                <div class="flex gap-2">
+                    <div class="h-2.5 flex-1 rounded-full transition-colors duration-500 {% if quest.created_tasks >= 1 %}bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_12px_rgba(16,185,129,.5)]{% else %}bg-white/5{% endif %}"></div>
+                    <div class="h-2.5 flex-1 rounded-full transition-colors duration-500 {% if quest.completed_tasks >= 1 %}bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_12px_rgba(16,185,129,.5)]{% else %}bg-white/5{% endif %}"></div>
+                    <div class="h-2.5 flex-1 rounded-full transition-colors duration-500 {% if quest.faucet_clicks >= 1 %}bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_12px_rgba(16,185,129,.5)]{% else %}bg-white/5{% endif %}"></div>
+                </div>
             </div>
+            {% endwith %}
         </div>
     </div>
+
+    <!-- PRO-статус -->
+    {% if not profile.is_pro %}
+        <div class="anim-in d3 card relative overflow-hidden bg-slate-900/70 border border-amber-500/20 rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-5 shadow-2xl shadow-black/40 backdrop-blur">
+            <div class="absolute -top-20 -left-12 w-56 h-56 bg-amber-500/10 blur-3xl rounded-full pointer-events-none" aria-hidden="true"></div>
+            <div class="relative">
+                <h3 class="text-white font-bold font-display flex items-center gap-2.5 text-lg">
+                    <span class="bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 text-[11px] font-extrabold px-2.5 py-1 rounded-full">★ PRO</span>
+                    Статус PRO
+                </h3>
+                <p class="text-sm text-slate-400 mt-2">Дневной лимит переводов 720 мин вместо 120. Стоимость — 3000 мин.</p>
+            </div>
+            <form method="POST" action="{% url 'buy_pro' %}" class="shrink-0 w-full sm:w-auto relative">
+                {% csrf_token %}
+                <button type="submit"
+                        class="btn btn-glow-amber w-full bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-950 font-bold text-sm px-7 py-3.5 rounded-2xl shadow-xl shadow-amber-500/20">
+                    Купить PRO
+                </button>
+            </form>
+        </div>
+    {% endif %}
 
 </div>
+{% endwith %}
 {% endblock %}
