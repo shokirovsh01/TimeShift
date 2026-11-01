@@ -114,3 +114,26 @@ class LeaderboardView(ListView):
     def get_queryset(self):
         return Profile.objects.select_related('user').order_by('-balance_minutes')
 
+class BuyProView(LoginRequiredMixin,View):
+    def post(self, request):
+        profile = request.user.profile
+        pro_price = 3000
+
+        if profile.is_pro:
+            messages.warning(request,"У вас уже есть PRO-статус!")
+            return redirect('profile')
+        
+        if profile.balance_minutes < pro_price:
+            messages.error(request, f"Недостаточно времени! PRO стоит {pro_price} минут.")
+            return redirect('profile')
+
+        profile.balance_minutes -= pro_price
+        profile.is_pro = True
+        profile.save()
+
+        messages.success(request, "Поздравляем! Вы успешно приобрели PRO-статус 🚀")
+        return redirect('profile')
+
+class AboutUsView(TemplateView):
+    template_name = 'users/about_us.html'
+    

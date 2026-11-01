@@ -17,4 +17,7 @@ urlpatterns = [
     path('user/<str:username>/follow/', ToggleFollowView.as_view(), name='toggle_follow'),     
     
     path('leaderboard/', LeaderboardView.as_view(), name='leaderboard'),
+
+    path('buy-pro/', BuyProView.as_view(), name='buy_pro'),
+    path('about/', AboutUsView.as_view(), name='about_us'),
 ]
