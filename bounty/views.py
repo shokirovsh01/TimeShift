@@ -2,6 +2,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
 from django.views import View
+from django.contrib import messages
+from django.utils import timezone
 from django.views.generic import *
 from .models import *
 
@@ -64,7 +66,42 @@ class CompleteTaskView(LoginRequiredMixin,View):
         
         task = get_object_or_404(BountyTask,pk=pk)
 
-        if task.status == 'in_progress' and task.creator == request.user:
-            HelpContract.objects.create(task=task,helper=task.performer,helped_user=task.creator)
+        if task.status != 'in_progress' or task.creator != request.user:
+            messages.error(request, "Вы не можете закрыть эту задачу.")
+            return redirect('bounty_list')
+
+        creator_profile = request.user.profile
+        now_date = timezone.now().date()
+
+        if creator_profile.last_spend_date != now_date:
+            creator_profile.daily_spent_minutes = 0
+            creator_profile.last_spend_date = now_date
+
+        daily_limit = 720 if creator_profile.is_pro else 120
+
+        if creator_profile.daily_spent_minutes + task.reward_minutes > daily_limit:
+            messages.error(request,f"Превышен дневной лимит переводов! Ваш лимит: {daily_limit} мин. Попробуйте завтра или купите PRO.") 
+            return redirect('bounty_list')
+
+        if creator_profile.balance_minutes < task.reward_minutes:
+            messages.error(request, "Недостаточно минут на балансе для оплаты задачи!")
+            return redirect('bounty_list')
+
+        creator_profile.daily_spent_minutes += task.reward_minutes
+        creator_profile.save()
+
+        task.status = 'completed'
+        task.save()
+
+        HelpContract.objects.create(
+            task=task,
+            customer=task.creator,
+            contractor=task.performer,
+            hours_transferred=task.reward_minutes
+            )
+        
+        messages.success(request, "Задача успешно закрыта! Минуты переведены исполнителю.")
         return redirect('bounty_list')
+
+
 
