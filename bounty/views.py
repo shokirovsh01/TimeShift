@@ -39,11 +39,9 @@ class BountyListView(ListView):
         context['current_skill'] = self.request.GET.get('skill', '')
         return context
 
-
-
 class BountyCreateView(LoginRequiredMixin,CreateView):
     model = BountyTask
-    fields = ['title','description','reward_hours','required_skills']
+    fields = ['title','description','reward_minutes','required_skills']
     template_name = 'bounty/create_task.html'
     success_url = reverse_lazy('bounty_list')
 
@@ -58,9 +56,12 @@ class BountyCreateView(LoginRequiredMixin,CreateView):
         quest.created_tasks += 1
         quest.save()
 
+        if quest.check_and_reward():
+            messages.success(self.request, "Ежедневный квест выполнен! +60 минут на баланс 🎁")
+
+
         return response
     
-
 class TakeTaskView(LoginRequiredMixin,View):
     def get(self,request,pk):
         task = get_object_or_404(BountyTask,pk=pk)
@@ -108,7 +109,7 @@ class CompleteTaskView(LoginRequiredMixin,View):
             task=task,
             customer=task.creator,
             contractor=task.performer,
-            hours_transferred=task.reward_minutes
+            minutes_transferred=task.reward_minutes
             )
 
         quest, created = DailyQuestProgress.objects.get_or_create(
@@ -117,6 +118,9 @@ class CompleteTaskView(LoginRequiredMixin,View):
         )
         quest.completed_tasks += 1
         quest.save()
+
+        if quest.check_and_reward():
+            messages.success(request, "Ежедневный квест выполнен! +60 минут на баланс 🎁")
         
         messages.success(request, "Задача успешно закрыта! Минуты переведены исполнителю.")
         return redirect('bounty_list')

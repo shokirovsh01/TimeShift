@@ -80,6 +80,22 @@ class DailyQuestProgress(models.Model):
 
     is_reward_claimed = models.BooleanField(default=False)
 
+    def check_and_reward(self):
+        if self.is_reward_claimed:
+            return False
+
+        if self.created_tasks >= 1 and self.completed_tasks >= 1 and self.faucet_clicks >= 1:
+            self.is_reward_claimed = True
+            self.save()
+
+            profile = self.user.profile
+            profile.balance_minutes += 60
+            profile.save()
+
+            return True
+        return False
+    
+
     def __str__(self):
         return f"Квесты {self.user.username} за {self.date}"
-     
+    

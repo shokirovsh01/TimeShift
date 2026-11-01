@@ -57,6 +57,9 @@ class CollectBonusView(LoginRequiredMixin,View):
         quest.faucet_clicks += 1
         quest.save()
 
+        if quest.check_and_reward():
+            messages.success(request,"Ежедневный квест выполнен! +60 минут на баланс 🎁")
+
         messages.success(request,'Бонус +20 минут успешно получен!')
         return redirect('profile')
     
