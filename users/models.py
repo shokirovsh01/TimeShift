@@ -98,4 +98,16 @@ class DailyQuestProgress(models.Model):
 
     def __str__(self):
         return f"Квесты {self.user.username} за {self.date}"
+
+from django.db.models import Avg
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+
+
+@receiver([post_save, post_delete], sender=Review)
+def update_user_reputation(sender, instance, **kwargs):
+    target_profile = instance.target_user.profile
+    avg_rating = Review.objects.filter(target_user=instance.target_user).aggregate(Avg('rating'))['rating__avg']
     
+    target_profile.reputation = round(avg_rating) if avg_rating else 0
+    target_profile.save()

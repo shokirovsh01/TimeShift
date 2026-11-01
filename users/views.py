@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views import View
-from django.shortcuts import redirect
+from django.shortcuts import redirect,get_object_or_404
 from datetime import timedelta
 from django.contrib import messages
 from django.views.generic import *
@@ -62,4 +62,48 @@ class CollectBonusView(LoginRequiredMixin,View):
 
         messages.success(request,'Бонус +20 минут успешно получен!')
         return redirect('profile')
+
+class AddReviewView(LoginRequiredMixin,View):
+    def post(self, request, username):
+        target_user = get_object_or_404(User, username=username)
+        
+        if target_user == request.user:
+            messages.error(request, "Нельзя оставить отзыв самому себе.")
+            return redirect('bounty_list')
+        
+        rating = request.POST.get('rating')
+        text = request.POST.get('text', '')
+
+        if not rating or not rating.isdigit() or not (1 <= int(rating) <= 10):
+            messages.error(request, "Оценка должна быть числом от 1 до 10.")
+            return redirect('bounty_list')
+
+        Review.objects.create(
+            author=request.user,
+            target_user=target_user,
+            rating=int(rating),
+            text=text
+        )
+
+        messages.success(request, f"Отзыв для {target_user.username} успешно добавлен!")
+        return redirect('bounty_list')
+
+        
+class ToggleFollowView(LoginRequiredMixin, View):
+    def post(self, request, username):
+        target_user = get_object_or_404(User, username=username)
+
+        if target_user == request.user:
+            messages.error(request, "Нельзя оставить отзыв самому себе.")
+            return redirect('bounty_list')
+
+        follow,created = Follow.objects.get_or_create(follower=request.user,following=target_user)
+        if not created:
+            follow.delete()
+            messages.success(request, f"Вы отписались от {target_user.username}")
+        else:
+            messages.success(request, f"Вы подписались на {target_user.username}")
+
+        return redirect('bounty_list')
+    
     
