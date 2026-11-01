@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.views import View
 from django.contrib import messages
 from django.utils import timezone
+from users.models import *
 from django.views.generic import *
 from .models import *
 
@@ -48,7 +49,17 @@ class BountyCreateView(LoginRequiredMixin,CreateView):
 
     def form_valid(self, form):
         form.instance.creator = self.request.user
-        return super().form_valid(form)
+        response = super().form_valid(form)
+
+        quest, created = DailyQuestProgress.objects.get_or_create(
+            user=self.request.user,
+            date=timezone.now().date()
+        )
+        quest.created_tasks += 1
+        quest.save()
+
+        return response
+    
 
 class TakeTaskView(LoginRequiredMixin,View):
     def get(self,request,pk):
@@ -99,6 +110,13 @@ class CompleteTaskView(LoginRequiredMixin,View):
             contractor=task.performer,
             hours_transferred=task.reward_minutes
             )
+
+        quest, created = DailyQuestProgress.objects.get_or_create(
+            user=task.performer, 
+            date=timezone.now().date()
+        )
+        quest.completed_tasks += 1
+        quest.save()
         
         messages.success(request, "Задача успешно закрыта! Минуты переведены исполнителю.")
         return redirect('bounty_list')

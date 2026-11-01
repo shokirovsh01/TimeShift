@@ -50,6 +50,13 @@ class CollectBonusView(LoginRequiredMixin,View):
         profile.last_bonus_time = now
         profile.save()
 
+        quest,created = DailyQuestProgress.objects.get_or_create(
+            user=request.user,
+            date=now.date()
+        )
+        quest.faucet_clicks += 1
+        quest.save()
+
         messages.success(request,'Бонус +20 минут успешно получен!')
         return redirect('profile')
     

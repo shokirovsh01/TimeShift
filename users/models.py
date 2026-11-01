@@ -68,3 +68,18 @@ class Notification(models.Model):
 
     def __str__(self):
         return f'Уведомление для {self.user.username}: {self.title}'
+
+
+class DailyQuestProgress(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name='quest_progress')
+    date = models.DateField(auto_now_add=True)
+
+    created_tasks = models.PositiveIntegerField(default=0)
+    completed_tasks = models.PositiveIntegerField(default=0)
+    faucet_clicks = models.PositiveIntegerField(default=0)
+
+    is_reward_claimed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Квесты {self.user.username} за {self.date}"
+     
