@@ -35,6 +35,21 @@ class Profile(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     skill = models.ManyToManyField(Skill,blank=True,related_name='profiles')
 
+    @property
+    def formatted_balance(self):
+        if self.balance_minutes == 0:
+            return "0 мин."
+        
+        hours = self.balance_minutes // 60
+        remaining_minutes = self.balance_minutes % 60
+        
+        if hours > 0 and remaining_minutes > 0:
+            return f"{hours} ч. {remaining_minutes} мин."
+        elif hours > 0:
+            return f"{hours} ч."
+        else:
+            return f"{remaining_minutes} мин."
+
     def __str__(self):
         return (f'{self.user.username} ({self.balance_minutes}m | Reputation: {self.reputation})')
     

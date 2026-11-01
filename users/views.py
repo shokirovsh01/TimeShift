@@ -106,4 +106,11 @@ class ToggleFollowView(LoginRequiredMixin, View):
 
         return redirect('bounty_list')
     
-    
+class LeaderboardView(ListView):
+    model = Profile
+    template_name = 'users/leaderboard.html'
+    context_object_name = 'top_profiles'
+
+    def get_queryset(self):
+        return Profile.objects.select_related('user').order_by('-balance_minutes')
+

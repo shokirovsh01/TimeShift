@@ -8,8 +8,13 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),  
     path('login/', LoginView.as_view(template_name='users/login.html'), name='login'),  
     path('logout/', LogoutView.as_view(next_page='bounty_list'), name='logout'),  
+    
     path('profile/', ProfileDetailView.as_view(), name='profile'),  
+    
     path('collect-bonus/', CollectBonusView.as_view(), name='collect_bonus'),
+    
     path('user/<str:username>/review/', AddReviewView.as_view(), name='add_review'),
     path('user/<str:username>/follow/', ToggleFollowView.as_view(), name='toggle_follow'),     
+    
+    path('leaderboard/', LeaderboardView.as_view(), name='leaderboard'),
 ]
