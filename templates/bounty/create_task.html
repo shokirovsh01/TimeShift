@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
+    <h1 class="text-2xl font-bold text-white mb-6">Создать микро-запрос</h1>
+
+    <form method="POST" class="space-y-5">
+        {% csrf_token %}
+        
+        <!-- Заголовок задачи -->
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Суть задачи</label>
+            <input type="text" name="title" required 
+                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+        </div>
+
+        <!-- Описание -->
+        <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Подробное описание</label>
+            <textarea name="description" rows="4" required 
+                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"></textarea>
+        </div>
+
+        <!-- Награда и Навыки -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-2">Награда в часах</label>
+                <input type="number" name="reward_hours" value="1" min="1" max="10" required 
+                    class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-300 mb-2">Требуемые навыки</label>
+                <select name="required_skills" multiple 
+                    class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition h-24">
+                    {% for skill in form.fields.required_skills.queryset %}
+                        <option value="{{ skill.id }}">{{ skill.name }}</option>
+                    {% endfor %}
+                </select>
+                <span class="text-xs text-slate-500 mt-1 block">Зажмите Ctrl / Cmd для выбора нескольких</span>
+            </div>
+        </div>
+
+        <!-- Кнопки -->
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
+            <a href="{% url 'bounty_list' %}" class="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition font-medium text-sm">Отмена</a>
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-medium text-sm hover:bg-indigo-500 transition shadow-lg shadow-indigo-600/25">Опубликовать</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

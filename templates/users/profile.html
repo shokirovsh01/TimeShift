@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-8">
+    
+    <!-- Шапка профиля -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6 shadow-xl">
+        <div class="w-20 h-20 rounded-2xl bg-indigo-600/30 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-2xl font-black">
+            {{ profile_user.username|slice:":2"|upper }}
+        </div>
+        
+        <div class="text-center sm:text-left flex-grow">
+            <h1 class="text-2xl font-bold text-white">{{ profile_user.username }}</h1>
+            <p class="text-slate-400 text-sm mt-1">Участник IT-сообщества DevTime</p>
+            
+            <div class="flex flex-wrap justify-center sm:justify-start gap-4 mt-4">
+                <div class="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 text-sm">
+                    ⏳ Баланс: <span class="text-emerald-400 font-bold">{{ profile_user.profile.time_balance }} ч.</span>
+                </div>
+                <div class="bg-slate-950 px-4 py-2 rounded-xl border border-slate-800 text-sm">
+                    ⭐ Репутация: <span class="text-amber-400 font-bold">{{ profile_user.profile.reputation }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Задачи пользователя -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Созданные задачи -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-lg font-bold text-white mb-4">Мои запросы</h2>
+            <div class="space-y-3">
+                {% for task in profile_user.created_tasks.all %}
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 flex justify-between items-center">
+                        <div>
+                            <h4 class="text-sm font-semibold text-white">{{ task.title }}</h4>
+                            <span class="text-xs text-slate-400">Награда: {{ task.reward_hours }} ч.</span>
+                        </div>
+                        <span class="text-xs px-2.5 py-1 rounded-full font-medium
+                            {% if task.status == 'open' %}bg-emerald-500/10 text-emerald-400
+                            {% elif task.status == 'in_progress' %}bg-amber-500/10 text-amber-400
+                            {% else %}bg-slate-800 text-slate-400{% endif %}">
+                            {{ task.get_status_display }}
+                        </span>
+                    </div>
+                {% empty %}
+                    <p class="text-slate-500 text-sm">Вы еще не создавали задач.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Задачи, где помогал -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+            <h2 class="text-lg font-bold text-white mb-4">Взятые в работу</h2>
+            <div class="space-y-3">
+                {% for task in profile_user.assigned_tasks.all %}
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 flex justify-between items-center">
+                        <div>
+                            <h4 class="text-sm font-semibold text-white">{{ task.title }}</h4>
+                            <span class="text-xs text-slate-400">Заказчик: {{ task.creator.username }}</span>
+                        </div>
+                        <span class="text-xs px-2.5 py-1 rounded-full font-medium bg-amber-500/10 text-amber-400">
+                            {{ task.get_status_display }}
+                        </span>
+                    </div>
+                {% empty %}
+                    <p class="text-slate-500 text-sm">Вы еще не брали задачи в работу.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
