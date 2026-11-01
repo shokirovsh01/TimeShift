@@ -21,8 +21,8 @@ class Profile(models.Model):
     balance_minutes = models.PositiveIntegerField(default=60)
     reputation = models.PositiveIntegerField(default=0)
     daily_bonus_minutes = models.PositiveIntegerField(default=0)
-    last_bonus_date = models.DateTimeField(null=True,blank=True)
-    last_bonus_time = models.DateField(null=True,blank=True)
+    last_bonus_date = models.DateField(null=True,blank=True)
+    last_bonus_time = models.DateTimeField(null=True,blank=True)
 
     is_pro = models.BooleanField(default=False,verbose_name='PRO-status')
     daily_spent_minutes = models.PositiveIntegerField(default=0)
@@ -34,6 +34,21 @@ class Profile(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     skill = models.ManyToManyField(Skill,blank=True,related_name='profiles')
+
+    @property
+    def formatted_balance(self):
+        if self.balance_minutes == 0:
+            return "0 мин."
+        
+        hours = self.balance_minutes // 60
+        remaining_minutes = self.balance_minutes % 60
+        
+        if hours > 0 and remaining_minutes > 0:
+            return f"{hours} ч. {remaining_minutes} мин."
+        elif hours > 0:
+            return f"{hours} ч."
+        else:
+            return f"{remaining_minutes} мин."
 
     def __str__(self):
         return (f'{self.user.username} ({self.balance_minutes}m | Reputation: {self.reputation})')
@@ -68,3 +83,46 @@ class Notification(models.Model):
 
     def __str__(self):
         return f'Уведомление для {self.user.username}: {self.title}'
+
+
+class DailyQuestProgress(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name='quest_progress')
+    date = models.DateField(auto_now_add=True)
+
+    created_tasks = models.PositiveIntegerField(default=0)
+    completed_tasks = models.PositiveIntegerField(default=0)
+    faucet_clicks = models.PositiveIntegerField(default=0)
+
+    is_reward_claimed = models.BooleanField(default=False)
+
+    def check_and_reward(self):
+        if self.is_reward_claimed:
+            return False
+
+        if self.created_tasks >= 1 and self.completed_tasks >= 1 and self.faucet_clicks >= 1:
+            self.is_reward_claimed = True
+            self.save()
+
+            profile = self.user.profile
+            profile.balance_minutes += 60
+            profile.save()
+
+            return True
+        return False
+    
+
+    def __str__(self):
+        return f"Квесты {self.user.username} за {self.date}"
+
+from django.db.models import Avg
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+
+
+@receiver([post_save, post_delete], sender=Review)
+def update_user_reputation(sender, instance, **kwargs):
+    target_profile = instance.target_user.profile
+    avg_rating = Review.objects.filter(target_user=instance.target_user).aggregate(Avg('rating'))['rating__avg']
+    
+    target_profile.reputation = round(avg_rating) if avg_rating else 0
+    target_profile.save()

@@ -1,109 +1,141 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="space-y-8">
+<div class="space-y-6 sm:space-y-8">
+
     <!-- Шапка страницы -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800 pb-6">
+    <div class="anim-in flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/5 pb-6">
         <div>
-            <h1 class="text-3xl font-extrabold text-white tracking-tight">Доска микро-запросов</h1>
-            <p class="text-slate-400 text-sm mt-1">Находи задачи, помогай коллегам и прокачивай свой баланс часов</p>
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight font-display">Доска задач</h1>
+            <p class="text-slate-400 text-sm mt-1.5">Бери задачи, помогай коллегам и пополняй баланс времени</p>
         </div>
-        
-        <a href="{% url 'create_task' %}" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm px-5 py-2.5 rounded-xl transition shadow-lg shadow-indigo-600/25">
-            <span>+ Создать задачу</span>
+        <a href="{% url 'create_task' %}"
+           class="btn btn-glow-indigo inline-flex items-center gap-2 bg-indigo-500 hover:bg-indigo-400 text-white font-semibold text-sm px-6 py-3 rounded-2xl shadow-lg shadow-indigo-500/25">
+            <span class="text-base leading-none">+</span> Создать задачу
         </a>
     </div>
 
-    <!-- Панель фильтров (Статусы и Навыки) -->
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <!-- Панель фильтров -->
+    <div class="anim-in d1 bg-slate-900/60 border border-white/5 rounded-3xl p-4 sm:p-5 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 shadow-2xl shadow-black/30 backdrop-blur">
         <!-- Фильтр по статусам -->
         <div class="flex flex-wrap gap-2 text-sm">
-            <a href="{% url 'bounty_list' %}" class="px-3.5 py-1.5 rounded-xl transition {% if not current_status %}bg-indigo-600 text-white font-medium{% else %}bg-slate-950 text-slate-400 hover:text-white border border-slate-800{% endif %}">
+            <a href="{% url 'bounty_list' %}"
+               class="px-4 py-2 rounded-2xl transition-all duration-200 {% if not current_status %}bg-indigo-500 text-white font-semibold shadow-lg shadow-indigo-500/30{% else %}bg-white/5 text-slate-400 hover:text-white border border-white/10 hover:bg-white/10{% endif %}">
                 Все
             </a>
-            <a href="?status=open{% if current_skill %}&skill={{ current_skill }}{% endif %}" class="px-3.5 py-1.5 rounded-xl transition {% if current_status == 'open' %}bg-indigo-600 text-white font-medium{% else %}bg-slate-950 text-slate-400 hover:text-white border border-slate-800{% endif %}">
+            <a href="?status=open{% if current_skill %}&skill={{ current_skill }}{% endif %}"
+               class="px-4 py-2 rounded-2xl transition-all duration-200 {% if current_status == 'open' %}bg-indigo-500 text-white font-semibold shadow-lg shadow-indigo-500/30{% else %}bg-white/5 text-slate-400 hover:text-white border border-white/10 hover:bg-white/10{% endif %}">
                 Открытые
             </a>
-            <a href="?status=in_progress{% if current_skill %}&skill={{ current_skill }}{% endif %}" class="px-3.5 py-1.5 rounded-xl transition {% if current_status == 'in_progress' %}bg-indigo-600 text-white font-medium{% else %}bg-slate-950 text-slate-400 hover:text-white border border-slate-800{% endif %}">
+            <a href="?status=in_progress{% if current_skill %}&skill={{ current_skill }}{% endif %}"
+               class="px-4 py-2 rounded-2xl transition-all duration-200 {% if current_status == 'in_progress' %}bg-indigo-500 text-white font-semibold shadow-lg shadow-indigo-500/30{% else %}bg-white/5 text-slate-400 hover:text-white border border-white/10 hover:bg-white/10{% endif %}">
                 В работе
             </a>
-            <a href="?status=completed{% if current_skill %}&skill={{ current_skill }}{% endif %}" class="px-3.5 py-1.5 rounded-xl transition {% if current_status == 'completed' %}bg-indigo-600 text-white font-medium{% else %}bg-slate-950 text-slate-400 hover:text-white border border-slate-800{% endif %}">
+            <a href="?status=completed{% if current_skill %}&skill={{ current_skill }}{% endif %}"
+               class="px-4 py-2 rounded-2xl transition-all duration-200 {% if current_status == 'completed' %}bg-indigo-500 text-white font-semibold shadow-lg shadow-indigo-500/30{% else %}bg-white/5 text-slate-400 hover:text-white border border-white/10 hover:bg-white/10{% endif %}">
                 Завершенные
             </a>
         </div>
 
-        <!-- Фильтр по навыкам -->
+        <!-- Фильтр по скиллам -->
         <div class="flex flex-wrap gap-1.5 items-center">
-            <span class="text-xs text-slate-500 mr-1">Навык:</span>
-            <a href="?{% if current_status %}status={{ current_status }}{% endif %}" class="px-2.5 py-1 rounded-lg text-xs transition {% if not current_skill %}bg-slate-800 text-white font-medium{% else %}bg-slate-950 text-slate-400 hover:text-white border border-slate-800{% endif %}">
-                Все навыки
+            <span class="text-xs text-slate-500 mr-1">Скилл:</span>
+            <a href="?{% if current_status %}status={{ current_status }}{% endif %}"
+               class="px-3 py-1.5 rounded-xl text-xs transition-all duration-200 {% if not current_skill %}bg-white/10 text-white font-semibold border border-white/10{% else %}bg-white/5 text-slate-400 hover:text-white border border-white/10{% endif %}">
+                Все
             </a>
             {% for skill in skills %}
-                <a href="?skill={{ skill.id }}{% if current_status %}&status={{ current_status }}{% endif %}" class="px-2.5 py-1 rounded-lg text-xs transition {% if current_skill == skill.id|stringformat:'s' %}bg-indigo-600 text-white font-medium{% else %}bg-slate-950 text-slate-400 hover:text-white border border-slate-800{% endif %}">
+                <a href="?skill={{ skill.id }}{% if current_status %}&status={{ current_status }}{% endif %}"
+                   class="px-3 py-1.5 rounded-xl text-xs transition-all duration-200 {% if current_skill == skill.id|stringformat:'s' %}bg-indigo-500 text-white font-semibold shadow-md shadow-indigo-500/30{% else %}bg-white/5 text-slate-400 hover:text-white border border-white/10 hover:bg-white/10{% endif %}">
                     #{{ skill.name }}
                 </a>
             {% endfor %}
         </div>
     </div>
 
-    <!-- Сетка карточек задач (оставляем твой текущий цикл вывода карточек) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Сетка карточек задач -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
         {% for task in tasks %}
-        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between hover:border-indigo-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/10 group">
+        <div class="anim-in d{{ forloop.counter0|slice:":1" }} card group relative overflow-hidden bg-slate-900/70 border border-white/5 rounded-3xl p-6 flex flex-col justify-between shadow-2xl shadow-black/40 backdrop-blur">
+            <!-- свечение сверху при наведении -->
+            <div class="absolute inset-x-8 -top-px h-px bg-gradient-to-r from-transparent via-indigo-500/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" aria-hidden="true"></div>
+
             <div>
+                <!-- Статус и награда -->
                 <div class="flex justify-between items-center gap-2 mb-4">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
-                        {% if task.status == 'open' %} bg-emerald-500/10 text-emerald-400 border border-emerald-500/20
-                        {% elif task.status == 'in_progress' %} bg-amber-500/10 text-amber-400 border border-amber-500/20
-                        {% else %} bg-slate-800 text-slate-400 border border-slate-700 {% endif %}">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border
+                        {% if task.status == 'open' %}bg-emerald-500/10 text-emerald-300 border-emerald-500/25
+                        {% elif task.status == 'in_progress' %}bg-amber-500/10 text-amber-300 border-amber-500/25
+                        {% elif task.status == 'cancelled' %}bg-rose-500/10 text-rose-300 border-rose-500/25
+                        {% else %}bg-white/5 text-slate-400 border-white/10{% endif %}">
+                        <span class="w-1.5 h-1.5 rounded-full bg-current
+                            {% if task.status == 'open' %}animate-pulse{% endif %}"></span>
                         {{ task.get_status_display }}
                     </span>
 
-                    <span class="inline-flex items-center gap-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-3 py-1 rounded-xl text-xs font-bold">
-                        ⏳ {{ task.reward_hours }} ч.
+                    <span class="inline-flex items-center gap-1 bg-indigo-500/10 text-indigo-300 border border-indigo-500/25 px-3 py-1 rounded-2xl text-xs font-bold tabular-nums">
+                        ⏳ {{ task.reward_minutes }} мин.
                     </span>
                 </div>
 
-                <h3 class="text-lg font-bold text-white mb-2 group-hover:text-indigo-300 transition line-clamp-1">
+                <!-- Название и описание -->
+                <h3 class="text-lg font-bold text-white mb-2 font-display group-hover:text-indigo-300 transition-colors duration-200">
                     {{ task.title }}
                 </h3>
-                <p class="text-slate-400 text-sm mb-4 line-clamp-3 leading-relaxed">
-                    {{ task.description }}
+                <p class="text-slate-400 text-sm mb-4 leading-relaxed">
+                    {{ task.description|truncatechars:160 }}
                 </p>
 
-                <!-- Вывод тегов навыков в карточке -->
+                <!-- Теги скиллов -->
                 <div class="flex flex-wrap gap-1.5 mb-4">
                     {% for skill in task.required_skills.all %}
-                        <span class="bg-slate-950 text-slate-300 border border-slate-800 px-2 py-0.5 rounded text-[11px]">
+                        <span class="bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-2.5 py-0.5 rounded-lg text-[11px] font-medium hover:bg-indigo-500/20 transition-colors">
                             #{{ skill.name }}
                         </span>
                     {% endfor %}
                 </div>
             </div>
 
+            <!-- Нижняя часть карточки -->
             <div>
-                <div class="pt-4 border-t border-slate-800/80 flex justify-between items-center text-xs text-slate-500">
-                    <div class="flex items-center gap-2">
-                        <div class="w-6 h-6 rounded-full bg-indigo-600/30 text-indigo-400 flex items-center justify-center font-bold text-[10px]">
+                <div class="pt-4 border-t border-white/5 flex justify-between items-center gap-2 text-xs text-slate-500">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <!-- Инициалы автора -->
+                        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500/30 to-violet-600/30 text-indigo-300 flex items-center justify-center font-bold text-[10px] shrink-0 border border-indigo-500/20">
                             {{ task.creator.username|slice:":2"|upper }}
                         </div>
-                        <span class="text-slate-300 font-medium">{{ task.creator.username }}</span>
+                        <div class="min-w-0">
+                            <!-- Юзернейм ведёт на страницу профиля автора -->
+                            <a href="{% url 'user_profile' task.creator.username %}"
+                               class="block text-slate-300 font-medium truncate hover:text-indigo-300 transition-colors">
+                                {{ task.creator.username }}
+                            </a>
+                            <!-- Телеграм автора: по клику сразу открываем приложение -->
+                            {% if task.creator.profile.telegram_username %}
+                                <a href="tg://resolve?domain={{ task.creator.profile.telegram_username|cut:'@' }}"
+                                   class="block text-[11px] text-slate-500 truncate hover:text-sky-400 transition-colors">
+                                    @{{ task.creator.profile.telegram_username|cut:'@' }}
+                                </a>
+                            {% endif %}
+                        </div>
                     </div>
-                    <span>{{ task.created_at|date:"d.m.Y" }}</span>
+                    <span class="shrink-0">{{ task.created_at|date:"d.m.Y" }}</span>
                 </div>
 
-                <!-- Кнопки управления (взять в работу / закрыть) -->
-                <div class="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between">
-                    <span class="text-xs text-slate-500">
+                <!-- Исполнитель и действия -->
+                <div class="mt-4 pt-3 border-t border-white/5 flex items-center justify-between gap-2">
+                    <span class="text-xs text-slate-500 truncate">
                         Исполнитель: <strong class="text-slate-300">{% if task.performer %}{{ task.performer.username }}{% else %}—{% endif %}</strong>
                     </span>
                     {% if user.is_authenticated %}
                         {% if task.status == 'open' and task.creator != user %}
-                            <a href="{% url 'take_task' task.id %}" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition shadow">
+                            <a href="{% url 'take_task' task.id %}"
+                               class="btn btn-glow-indigo bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-semibold px-4 py-2 rounded-xl shadow-md shadow-indigo-500/25 shrink-0">
                                 Взять в работу
                             </a>
                         {% elif task.status == 'in_progress' and task.creator == user %}
-                            <a href="{% url 'complete_task' task.id %}" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition shadow">
+                            <a href="{% url 'complete_task' task.id %}"
+                               class="btn btn-glow-emerald bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold px-4 py-2 rounded-xl shadow-md shadow-emerald-500/25 shrink-0">
                                 Закрыть задачу
                             </a>
                         {% endif %}
@@ -112,10 +144,10 @@
             </div>
         </div>
         {% empty %}
-        <div class="col-span-full text-center py-16 bg-slate-900/40 rounded-2xl border border-dashed border-slate-800">
-            <div class="text-4xl mb-3">📭</div>
-            <h3 class="text-lg font-semibold text-white mb-1">Задачи не найдены</h3>
-            <p class="text-slate-400 text-sm">По выбранным фильтрам нет активных запросов.</p>
+        <div class="anim-in col-span-full text-center py-20 bg-slate-900/40 rounded-3xl border border-dashed border-white/10">
+            <div class="text-5xl mb-4 bob">📭</div>
+            <h3 class="text-lg font-semibold text-white mb-1 font-display">Задачи не найдены</h3>
+            <p class="text-slate-400 text-sm">По выбранным фильтрам нет активных задач.</p>
         </div>
         {% endfor %}
     </div>

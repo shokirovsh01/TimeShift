@@ -16,12 +16,12 @@ class BountyTask(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     required_skills = models.ManyToManyField(Skill,blank=True,related_name='tasks')
-    reward_hours = models.PositiveIntegerField(default=1)
+    reward_minutes = models.PositiveIntegerField(default=60)
     status = models.CharField(max_length=20,choices=STATUS_CHOICES,default='open')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.title} ({self.reward_hours}h) - {self.status}'
+        return f'{self.title} ({self.reward_minutes} min) - {self.status}'
 
 class HelpContract(models.Model):
     task = models.OneToOneField(BountyTask,on_delete=models.CASCADE,related_name='contract')

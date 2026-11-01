@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-12 sm:space-y-16">
+
+    <!-- Герой-блок -->
+    <div class="text-center space-y-6 pt-4">
+        <span class="anim-in inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-xs font-semibold px-4 py-1.5 rounded-full">
+            <span class="bob">⚡</span> TIME IS THE ONLY CURRENCY
+        </span>
+        <h1 class="anim-in d1 text-4xl sm:text-6xl font-extrabold text-white tracking-tight leading-[1.1] font-display">
+            Время — единственная валюта,<br class="hidden sm:block">
+            которая <span class="gradient-shift">у всех равна</span>
+        </h1>
+        <p class="anim-in d2 text-slate-400 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+            TimeShift — платформа тайм-банкинга. Здесь час помощи оценивается одинаково,
+            кто бы её ни оказал: новичок или эксперт. Ты помогаешь — тебе начисляют время,
+            ты нуждаешься в помощи — платишь им же.
+        </p>
+        <div class="anim-in d3 flex flex-wrap justify-center gap-3 pt-2">
+            <a href="{% url 'bounty_list' %}"
+               class="btn btn-glow-indigo bg-indigo-500 hover:bg-indigo-400 text-white font-semibold text-sm px-7 py-3.5 rounded-2xl shadow-lg shadow-indigo-500/25">
+                Смотреть задачи
+            </a>
+            {% if not user.is_authenticated %}
+                <a href="{% url 'register' %}"
+                   class="btn bg-white/5 hover:bg-white/10 text-white font-semibold text-sm px-7 py-3.5 rounded-2xl border border-white/10">
+                    Присоединиться
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Как это работает -->
+    <div class="anim-in d2 relative overflow-hidden bg-slate-900/70 border border-white/5 rounded-3xl p-6 sm:p-10 shadow-2xl shadow-black/40 backdrop-blur">
+        <div class="absolute -top-24 -left-16 w-64 h-64 bg-indigo-600/15 blur-3xl rounded-full pointer-events-none" aria-hidden="true"></div>
+        <h2 class="text-xl sm:text-2xl font-bold text-white mb-7 font-display relative">Как это работает</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 relative">
+            <div class="card bg-slate-950/60 border border-white/5 rounded-2xl p-5">
+                <div class="w-11 h-11 rounded-2xl bg-indigo-500/15 text-indigo-300 flex items-center justify-center font-bold font-display mb-4 border border-indigo-500/20 bob">1</div>
+                <h3 class="text-white font-semibold text-sm mb-1.5 font-display">Создай задачу</h3>
+                <p class="text-slate-400 text-xs leading-relaxed">Опиши, в чём нужна помощь, и назначь награду в минутах.</p>
+            </div>
+            <div class="card bg-slate-950/60 border border-white/5 rounded-2xl p-5" style="animation-delay:.15s">
+                <div class="w-11 h-11 rounded-2xl bg-indigo-500/15 text-indigo-300 flex items-center justify-center font-bold font-display mb-4 border border-indigo-500/20 bob" style="animation-delay:.4s">2</div>
+                <h3 class="text-white font-semibold text-sm mb-1.5 font-display">Помоги кому-то</h3>
+                <p class="text-slate-400 text-xs leading-relaxed">Возьми открытую задачу, реши её и закрой — время придёт на твой баланс.</p>
+            </div>
+            <div class="card bg-slate-950/60 border border-white/5 rounded-2xl p-5" style="animation-delay:.3s">
+                <div class="w-11 h-11 rounded-2xl bg-indigo-500/15 text-indigo-300 flex items-center justify-center font-bold font-display mb-4 border border-indigo-500/20 bob" style="animation-delay:.8s">3</div>
+                <h3 class="text-white font-semibold text-sm mb-1.5 font-display">Трать на своё</h3>
+                <p class="text-slate-400 text-xs leading-relaxed">Накопленным временем оплачивай чужую помощь — баланс закрывается.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Принципы -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+        <div class="anim-in d1 card bg-slate-900/70 border border-white/5 rounded-3xl p-6 shadow-2xl shadow-black/40 backdrop-blur">
+            <div class="text-3xl mb-4 bob">⏳</div>
+            <h3 class="text-white font-bold mb-2 font-display text-lg">Равенство времени</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">
+                У всех 24 часа в сутках. В TimeShift час репетитора и час дизайнера стоят одинаково —
+                ценность определяет только результат и благодарность сообщества.
+            </p>
+        </div>
+        <div class="anim-in d2 card bg-slate-900/70 border border-white/5 rounded-3xl p-6 shadow-2xl shadow-black/40 backdrop-blur">
+            <div class="text-3xl mb-4 bob" style="animation-delay:.3s">⭐</div>
+            <h3 class="text-white font-bold mb-2 font-display text-lg">Репутация вместо рейтинга</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">
+                После каждой задачи заказчик оставляет оценку от 1 до 10. Средняя оценка
+                формирует репутацию — честный ориентир для тех, кто ищет помощника.
+            </p>
+        </div>
+        <div class="anim-in d3 card bg-slate-900/70 border border-white/5 rounded-3xl p-6 shadow-2xl shadow-black/40 backdrop-blur">
+            <div class="text-3xl mb-4 bob" style="animation-delay:.6s">🎯</div>
+            <h3 class="text-white font-bold mb-2 font-display text-lg">Микро-задачи</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">
+                Не нужен проект на неделю. Помоги с код-ревью за 30 минут, объясни фреймворк
+                за час — любая помощь становится валютой.
+            </p>
+        </div>
+        <div class="anim-in d4 card bg-slate-900/70 border border-white/5 rounded-3xl p-6 shadow-2xl shadow-black/40 backdrop-blur">
+            <div class="text-3xl mb-4 bob" style="animation-delay:.9s">🎁</div>
+            <h3 class="text-white font-bold mb-2 font-display text-lg">Бонусы и квесты</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">
+                Тайм-кран начисляет +20 минут каждые 20 минут, ежедневные квесты дают до +60 минут,
+                а PRO-статус поднимает дневной лимит переводов до 720 минут.
+            </p>
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="anim-in d3 relative overflow-hidden bg-gradient-to-br from-indigo-500/15 via-slate-900 to-emerald-500/10 border border-white/5 rounded-3xl p-8 sm:p-12 text-center shadow-2xl shadow-black/40">
+        <div class="absolute -bottom-24 -right-12 w-72 h-72 bg-emerald-500/10 blur-3xl rounded-full pointer-events-none" aria-hidden="true"></div>
+        <h2 class="text-2xl sm:text-3xl font-bold text-white mb-3 font-display relative">Готов обмениваться временем?</h2>
+        <p class="text-slate-400 text-sm mb-7 relative">Регистрация занимает минуту — стартовый баланс 60 минут уже ждёт.</p>
+        {% if user.is_authenticated %}
+            <a href="{% url 'create_task' %}"
+               class="btn btn-glow-emerald inline-block bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-sm px-7 py-3.5 rounded-2xl shadow-xl shadow-emerald-500/20 relative">
+                Создать первую задачу
+            </a>
+        {% else %}
+            <a href="{% url 'register' %}"
+               class="btn btn-glow-indigo inline-block bg-indigo-500 hover:bg-indigo-400 text-white font-bold text-sm px-7 py-3.5 rounded-2xl shadow-xl shadow-indigo-500/25 relative">
+                Начать бесплатно
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
