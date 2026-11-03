@@ -9,8 +9,6 @@ urlpatterns = [
     path('login/', LoginView.as_view(template_name='users/login.html'), name='login'),  
     path('logout/', LogoutView.as_view(next_page='bounty_list'), name='logout'),  
     
-    path('profile/', ProfileDetailView.as_view(), name='profile'),  
-    
     path('collect-bonus/', CollectBonusView.as_view(), name='collect_bonus'),
     
     path('user/<str:username>/review/', AddReviewView.as_view(), name='add_review'),
@@ -21,9 +19,11 @@ urlpatterns = [
     path('buy-pro/', BuyProView.as_view(), name='buy_pro'),
     path('about/', AboutUsView.as_view(), name='about_us'),
 
-    # редактирование своего профиля
+    path('profile/', ProfileDetailView.as_view(), name='profile'),  
     path('profile/edit/', ProfileUpdateView.as_view(), name='edit_profile'),
-
-    # публичная страница профиля другого пользователя (подписка / просмотр)
     path('user/<str:username>/', UserProfileView.as_view(), name='user_profile'),
+
+    path('transfer/', TransferView.as_view(), name='transfer_time'),
+
+    path('notifications/', NotificationListView.as_view(), name='notifications'),
 ]

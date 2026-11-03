@@ -7,6 +7,8 @@ from django.views import View
 from django.shortcuts import redirect,get_object_or_404,render
 from datetime import timedelta
 from django.contrib import messages
+from datetime import date
+from django.db import transaction
 from django.views.generic import *
 from .models import *
 from .forms import ProfileEditForm
@@ -182,3 +184,68 @@ class UserProfileView(DetailView):
             and self.request.user.following.filter(following=self.object).exists()
         )
         return context
+
+class TransferView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        username = request.POST.get('username')
+        recipient = get_object_or_404(User, username=username)
+
+        if recipient == request.user:
+            messages.error(request,"Нельзя переводить время самому себе.")
+            return redirect('user_profile', username=recipient.username)
+
+        try:
+            amount = int(request.POST.get('amount',0))
+        except:
+            messages.error(request, "Укажите корректную сумму для перевода.")
+            return redirect('user_profile', username=recipient.username)
+
+        if amount <= 0 or amount > 3600:
+            messages.error(request, "Сумма перевода должна быть больше 0 и не превышать 3600 минут.")
+            return redirect('user_profile', username=recipient.username)
+
+        sender_profile = request.user.profile
+        recipient_profile = recipient.profile
+        today = timezone.now().date()
+
+        if sender_profile.last_spend_date != today:
+            sender_profile.daily_spent_minutes = 0
+            sender_profile.last_spend_date = today
+
+        daily_limit = 720 if sender_profile.is_pro else 120
+        if sender_profile.daily_spent_minutes + amount > daily_limit:
+            messages.error(request,
+                f"Превышен дневной лимит! Ваш лимит: {daily_limit} мин. "
+                f"Уже потрачено сегодня: {sender_profile.daily_spent_minutes} мин."
+            )
+            return redirect('user_profile', username=recipient.username)
+
+        if sender_profile.balance_minutes < amount:
+            messages.error(request, "Недостаточно минут на балансе для перевода.")
+            return redirect('user_profile', username=recipient.username)
+
+        with transaction.atomic():
+            sender_profile.balance_minutes -= amount
+            sender_profile.daily_spent_minutes += amount
+            sender_profile.save()
+
+            recipient_profile.balance_minutes += amount
+            recipient_profile.save()
+
+            Notification.objects.create(
+                user=recipient,
+                title='Перевод времени',
+                message=f"Вам поступил перевод: {amount} мин. от @{request.user.username}"
+            )
+        messages.success(request, f"Успешно переведено {amount} мин. пользователю @{recipient.username}!")
+        return redirect('user_profile', username=recipient.username)
+
+class NotificationListView(LoginRequiredMixin,ListView):
+    model = Notification
+    template_name = 'users/notifications.html'
+    context_object_name = 'notifications'
+
+    def get_queryset(self):
+        self.request.user.notifications.filter(is_read=False).update(is_read=True)
+        return self.request.user.notifications.order_by('-created_at')
+    
