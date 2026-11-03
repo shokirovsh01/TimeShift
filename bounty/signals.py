@@ -21,7 +21,7 @@ def process_help_contract(sender,instance,created,**kwargs):
             helped_profile.save()
 
             helper_profile.balance_minutes += reward
-            helper_profile.reputation += 10
+            # helper_profile.reputation += 10
             helper_profile.save()
 
             task.status = 'completed'
