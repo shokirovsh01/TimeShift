@@ -53,11 +53,22 @@ class Profile(models.Model):
     def __str__(self):
         return (f'{self.user.username} ({self.balance_minutes}m | Reputation: {self.reputation})')
     
+# ---------------------------------------------------------------------------
+# ОТЗЫВЫ И РЕЙТИНГ
+# ---------------------------------------------------------------------------
+# Review — единица оценки участника: author оценивает target_user по шкале 1..10
+# и (необязательно) пишет комментарий. Средний балл по всем отзывам о пользователе
+# хранится в Profile.reputation и пересчитывается сигналом update_user_reputation
+# (см. ниже) при каждом создании/сохранении/удалении отзыва.
+# ---------------------------------------------------------------------------
 class Review(models.Model):
+    # кто оставил отзыв (нельзя оценить самого себя — проверяется в AddReviewView)
     author = models.ForeignKey(User,on_delete=models.CASCADE,related_name='written_reviews')
-    target_user = models.ForeignKey(User,on_delete=models.CASCADE,related_name='reviews') 
+    # кого оценили; related_name='reviews' → user.reviews.all() — все отзывы о юзере
+    target_user = models.ForeignKey(User,on_delete=models.CASCADE,related_name='reviews')
+    # оценка целым 1..10 (валидаторы дублируют проверку в AddReviewView — защита в глубину)
     rating = models.IntegerField(validators=[MinValueValidator(1),MaxValueValidator(10)])
-    text = models.TextField(blank=True,null=True)
+    text = models.TextField(blank=True,null=True)  # комментарий, не обязателен
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -119,10 +130,32 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
 
+# ---------------------------------------------------------------------------
+# СИГНАЛ: пересчёт репутации при изменении отзывов
+# ---------------------------------------------------------------------------
+# Срабатывает на post_save и post_delete модели Review, т.е. репутация
+# (средний рейтинг) обновляется при: создании отзыва, его редактировании
+# (AddReviewView обновляет существующий отзыв) и удалении отзыва.
 @receiver([post_save, post_delete], sender=Review)
 def update_user_reputation(sender, instance, **kwargs):
-    target_profile = instance.target_user.profile
-    avg_rating = Review.objects.filter(target_user=instance.target_user).aggregate(Avg('rating'))['rating__avg']
-    
-    target_profile.reputation = round(avg_rating) if avg_rating else 0
-    target_profile.save()
+    """Profile.reputation = средний rating по всем отзывам instance.target_user.
+
+    Округление арифметическое (int(x + 0.5)), а не built-in round():
+    round(4.5) → 4 (банковское округление до чётного), а нам нужно 4.5 → 5.
+    """
+    try:
+        target_profile = instance.target_user.profile
+    except Profile.DoesNotExist:
+        # профиль ещё не создан (или уже удалён каскадом при удалении юзера) —
+        # пересчитывать нечего, не роняем запрос
+        return
+
+    # средний балл по всем отзывам о данном пользователе (None, если отзывов нет)
+    avg_rating = Review.objects.filter(
+        target_user=instance.target_user
+    ).aggregate(Avg('rating'))['rating__avg']
+
+    # без отзывов репутация = 0; иначе — округлённое среднее (4.5 → 5)
+    target_profile.reputation = int(avg_rating + 0.5) if avg_rating else 0
+    # save только одного поля, чтобы не затирать параллельные изменения профиля
+    target_profile.save(update_fields=['reputation'])

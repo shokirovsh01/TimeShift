@@ -1,0 +1,51 @@
+{% comment %}
+Список отзывов о пользователе (общий блок).
+Ожидаемый контекст из view: reviews (queryset, новые сверху).
+Используется в: users/profile.html (свой профиль) и users/user_profile.html.
+Цвет пилюли оценки: >=7 — изумруд, 4..6 — янтарь, 1..3 — розовый.
+{% endcomment %}
+<div class="anim-in d3 card bg-[#111726]/60 backdrop-blur-md border border-white/10 rounded-2xl p-5 transition-all duration-300 hover:border-emerald-500/30">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-white font-semibold flex items-center gap-2 text-base">
+            💬 Отзывы
+        </h2>
+        <span class="text-[11px] font-semibold text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-mono shadow-[0_0_12px_rgba(16,185,129,0.2)]">
+            {{ reviews|length }} шт.
+        </span>
+    </div>
+
+    <div class="space-y-3">
+        {% for review in reviews %}
+            <div class="bg-[#0B0F19]/70 border border-white/5 rounded-xl px-4 py-3.5 hover:border-emerald-500/30 transition-all duration-300">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                    <a href="{% url 'user_profile' review.author.username %}"
+                       class="text-sm font-medium text-slate-200 hover:text-emerald-400 transition">
+                        @{{ review.author.username }}
+                    </a>
+                    <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full font-mono border
+                        {% if review.rating >= 7 %}bg-emerald-500/10 text-emerald-300 border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.2)]
+                        {% elif review.rating >= 4 %}bg-amber-500/10 text-amber-300 border-amber-500/30
+                        {% else %}bg-rose-500/10 text-rose-300 border-rose-500/30{% endif %}">
+                        {{ review.rating }}/10
+                    </span>
+                </div>
+
+                {% if review.text %}
+                    <p class="text-slate-400 text-sm leading-relaxed whitespace-pre-line">{{ review.text }}</p>
+                {% else %}
+                    <p class="text-slate-600 text-xs italic">Без комментария</p>
+                {% endif %}
+
+                <time class="block text-slate-600 text-[11px] font-mono mt-2 tabular-nums"
+                      datetime="{{ review.created_at|date:'c' }}">
+                    {{ review.created_at|date:"d.m.Y H:i" }}
+                </time>
+            </div>
+        {% empty %}
+            <p class="text-slate-500 text-sm">
+                Пока нет отзывов.
+                {% if user.is_authenticated and profile_user != user %}Будьте первым — оцените!{% endif %}
+            </p>
+        {% endfor %}
+    </div>
+</div>
