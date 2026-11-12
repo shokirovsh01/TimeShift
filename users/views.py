@@ -29,6 +29,18 @@ class ProfileDetailView(LoginRequiredMixin,DeleteView):
     def get_object(self):
         return self.request.user
 
+    def get_context_data(self, **kwargs):
+        """Отзывы о себе — для блока «Отзывы» в profile.html (новые сверху)."""
+        context = super().get_context_data(**kwargs)
+        # self.object здесь = request.user (см. get_object);
+        # select_related('author__profile') — одна SQL-выборка вместо N+1
+        context['reviews'] = (
+            self.object.reviews
+            .select_related('author__profile')
+            .order_by('-created_at')
+        )
+        return context
+
 class CollectBonusView(LoginRequiredMixin,View):
     def get(self, request):
         profile = request.user.profile
@@ -67,30 +79,67 @@ class CollectBonusView(LoginRequiredMixin,View):
         messages.success(request,'Бонус +20 минут успешно получен!')
         return redirect('profile')
 
-class AddReviewView(LoginRequiredMixin,View):
+# ---------------------------------------------------------------------------
+# ОТЗЫВЫ И РЕЙТИНГ
+# ---------------------------------------------------------------------------
+class AddReviewView(LoginRequiredMixin, View):
+    """POST /user/<username>/review/ (name='add_review') — оставить отзыв о пользователе.
+
+    Правила:
+      * оценка — обязательное целое 1..10;
+      * комментарий — необязательный текст до 2000 символов;
+      * нельзя оценить самого себя;
+      * один автор — один отзыв: повторная отправка обновляет существующий
+        (а не создаёт дубликат — иначе можно накручивать/портить рейтинг);
+      * репутация получателя пересчитывается автоматически сигналом
+        post_save → update_user_reputation (users/models.py).
+    Шаблона-«страницы» у формы нет: она POST-ится из карточки
+    «Оставить отзыв» на /user/<username>/ (templates/users/user_profile.html).
+    """
+
     def post(self, request, username):
         target_user = get_object_or_404(User, username=username)
-        
+
+        # отзыва о самом себе быть не может
         if target_user == request.user:
             messages.error(request, "Нельзя оставить отзыв самому себе.")
-            return redirect('bounty_list')
-        
-        rating = request.POST.get('rating')
-        text = request.POST.get('text', '')
+            return redirect('user_profile', username=username)
 
-        if not rating or not rating.isdigit() or not (1 <= int(rating) <= 10):
+        # нормализуем вход: " 5 " → "5"; комментарий без краевых пробелов
+        rating = (request.POST.get('rating') or '').strip()
+        text = (request.POST.get('text') or '').strip()
+
+        # валидация оценки: непустая строка-число строго в диапазоне 1..10
+        # (isdigit() отсекает "5.0", "-3", "abc" и т.п.)
+        if not rating.isdigit() or not (1 <= int(rating) <= 10):
             messages.error(request, "Оценка должна быть числом от 1 до 10.")
-            return redirect('bounty_list')
+            return redirect('user_profile', username=username)
 
-        Review.objects.create(
-            author=request.user,
-            target_user=target_user,
-            rating=int(rating),
-            text=text
-        )
+        # в модели нет max_length у text — ограничиваем здесь, защита от мусора
+        if len(text) > 2000:
+            messages.error(request, "Комментарий слишком длинный — максимум 2000 символов.")
+            return redirect('user_profile', username=username)
 
-        messages.success(request, f"Отзыв для {target_user.username} успешно добавлен!")
-        return redirect('bounty_list')
+        # upsert вручную (не update_or_create): filter().first() не падает,
+        # если в БД уже есть легаси-дубликаты от старой версии без этой проверки
+        existing = Review.objects.filter(author=request.user, target_user=target_user).first()
+        if existing:
+            # обновляем свой прошлый отзыв — post_save пересчитает репутацию
+            existing.rating = int(rating)
+            existing.text = text
+            existing.save()
+            messages.success(request, f"Ваш отзыв о {target_user.username} обновлён!")
+        else:
+            Review.objects.create(
+                author=request.user,
+                target_user=target_user,
+                rating=int(rating),
+                text=text,
+            )
+            messages.success(request, f"Отзыв для {target_user.username} успешно добавлен!")
+
+        # возвращаем автора на страницу того, кого он оценил — сразу виден результат
+        return redirect('user_profile', username=username)
 
         
 class ToggleFollowView(LoginRequiredMixin, View):
@@ -98,8 +147,8 @@ class ToggleFollowView(LoginRequiredMixin, View):
         target_user = get_object_or_404(User, username=username)
 
         if target_user == request.user:
-            messages.error(request, "Нельзя оставить отзыв самому себе.")
-            return redirect('bounty_list')
+            messages.error(request, "Нельзя подписаться на самого себя.")
+            return redirect('user_profile', username=username)
 
         follow,created = Follow.objects.get_or_create(follower=request.user,following=target_user)
         if not created:
@@ -178,10 +227,32 @@ class UserProfileView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        user = self.request.user
+
         # подписан ли текущий юзер на владельца страницы (для кнопки)
         context['is_following'] = (
-            self.request.user.is_authenticated
-            and self.request.user.following.filter(following=self.object).exists()
+            user.is_authenticated
+            and user.following.filter(following=self.object).exists()
+        )
+
+        # --- Отзывы и рейтинг (для карточки формы и списка отзывов) ---
+        # все отзывы о владельце страницы, новые сверху; author грузим сразу
+        # (select_related), чтобы в шаблоне не было N+1-запросов на @username
+        reviews = (
+            self.object.reviews
+            .select_related('author__profile')
+            .order_by('-created_at')
+        )
+        context['reviews'] = reviews
+
+        # 1..10 — варианты оценки для радиокнопок формы (rating_choices)
+        context['rating_choices'] = range(1, 11)
+
+        # свой отзыв текущего пользователя — для предзаполнения формы:
+        # если он уже оценивал этого юзера, форма показывает прошлую оценку
+        # и текст, а кнопка становится «Обновить отзыв»
+        context['user_review'] = (
+            reviews.filter(author=user).first() if user.is_authenticated else None
         )
         return context
 

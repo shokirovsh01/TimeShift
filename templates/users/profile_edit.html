@@ -2,28 +2,27 @@
 
 {% block content %}
 <div class="max-w-xl mx-auto anim-in">
-    <div class="relative overflow-hidden bg-slate-900/70 border border-white/5 rounded-3xl p-6 sm:p-9 shadow-2xl shadow-black/40 backdrop-blur">
-        <div class="absolute -top-24 -right-16 w-56 h-56 bg-indigo-600/20 blur-3xl rounded-full pointer-events-none" aria-hidden="true"></div>
-        <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/70 to-transparent" aria-hidden="true"></div>
+    <div class="relative overflow-hidden bg-[#111726]/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 sm:p-7 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.8)]">
+        <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent" aria-hidden="true"></div>
 
-        <div class="relative flex items-center gap-4 mb-7">
+        <div class="flex items-center gap-4 mb-6">
             <!-- Текущий аватар -->
             {% if request.user.profile.avatar %}
                 <img src="{{ request.user.profile.avatar.url }}" alt="Ваш аватар"
-                     class="w-16 h-16 rounded-2xl object-cover border border-white/10 shrink-0">
+                     class="w-14 h-14 rounded-xl object-cover ring-2 ring-emerald-500/30 border border-white/10 shrink-0">
             {% else %}
-                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/25 to-violet-600/25 text-indigo-300 flex items-center justify-center font-bold font-display text-lg shrink-0 border border-indigo-500/20">
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 text-emerald-300 flex items-center justify-center font-semibold text-lg shrink-0 border border-emerald-500/30 ring-2 ring-emerald-500/30">
                     {{ request.user.username|slice:":2"|upper }}
                 </div>
             {% endif %}
             <div>
-                <h1 class="text-2xl font-bold text-white font-display">Редактировать профиль</h1>
-                <p class="text-slate-400 text-sm mt-0.5">Обнови данные и аватар</p>
+                <h1 class="text-xl font-semibold text-white tracking-tight">Редактировать профиль</h1>
+                <p class="text-slate-500 text-sm mt-0.5">Обнови данные и аватар</p>
             </div>
         </div>
 
         <!-- enctype="multipart/form-data" — обязательно для загрузки аватара -->
-        <form method="POST" enctype="multipart/form-data" class="edit-form space-y-4 relative">
+        <form method="POST" enctype="multipart/form-data" class="edit-form space-y-4">
             {% csrf_token %}
 
             {{ form.non_field_errors }}
@@ -31,12 +30,12 @@
             <!-- Логин и имя/фамилия -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-semibold text-slate-300 mb-1.5">{{ form.username.label }}</label>
+                    <label class="block text-sm font-medium text-slate-300 mb-1.5">{{ form.username.label }}</label>
                     {{ form.username }}
                     {% if form.username.errors %}<span class="text-xs text-rose-400 mt-1 block">{{ form.username.errors.0 }}</span>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-300 mb-1.5">{{ form.telegram_username.label }}</label>
+                    <label class="block text-sm font-medium text-slate-300 mb-1.5">{{ form.telegram_username.label }}</label>
                     {{ form.telegram_username }}
                     {% if form.telegram_username.errors %}<span class="text-xs text-rose-400 mt-1 block">{{ form.telegram_username.errors.0 }}</span>{% endif %}
                 </div>
@@ -44,43 +43,43 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-semibold text-slate-300 mb-1.5">{{ form.first_name.label }}</label>
+                    <label class="block text-sm font-medium text-slate-300 mb-1.5">{{ form.first_name.label }}</label>
                     {{ form.first_name }}
                     {% if form.first_name.errors %}<span class="text-xs text-rose-400 mt-1 block">{{ form.first_name.errors.0 }}</span>{% endif %}
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-300 mb-1.5">{{ form.last_name.label }}</label>
+                    <label class="block text-sm font-medium text-slate-300 mb-1.5">{{ form.last_name.label }}</label>
                     {{ form.last_name }}
                     {% if form.last_name.errors %}<span class="text-xs text-rose-400 mt-1 block">{{ form.last_name.errors.0 }}</span>{% endif %}
                 </div>
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-slate-300 mb-1.5">{{ form.specialization.label }}</label>
+                <label class="block text-sm font-medium text-slate-300 mb-1.5">{{ form.specialization.label }}</label>
                 {{ form.specialization }}
                 {% if form.specialization.errors %}<span class="text-xs text-rose-400 mt-1 block">{{ form.specialization.errors.0 }}</span>{% endif %}
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-slate-300 mb-1.5">{{ form.bio.label }}</label>
+                <label class="block text-sm font-medium text-slate-300 mb-1.5">{{ form.bio.label }}</label>
                 {{ form.bio }}
                 {% if form.bio.errors %}<span class="text-xs text-rose-400 mt-1 block">{{ form.bio.errors.0 }}</span>{% endif %}
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-slate-300 mb-1.5">{{ form.avatar.label }}</label>
+                <label class="block text-sm font-medium text-slate-300 mb-1.5">{{ form.avatar.label }}</label>
                 {{ form.avatar }}
-                <span class="block text-xs text-slate-500 mt-1.5">JPG/PNG/WEBP, до 2 МБ. Без нового файла текущий аватар сохранится.</span>
+                <span class="block text-xs text-slate-500 mt-1.5 font-mono">JPG/PNG/WEBP, до 2 МБ. Без нового файла текущий аватар сохранится.</span>
                 {% if form.avatar.errors %}<span class="text-xs text-rose-400 mt-1 block">{{ form.avatar.errors.0 }}</span>{% endif %}
             </div>
 
             <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-5 border-t border-white/5">
                 <a href="{% url 'profile' %}"
-                   class="btn px-6 py-3 rounded-2xl bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white transition font-medium text-sm border border-white/10 text-center">
+                   class="btn px-5 py-2.5 rounded-xl bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white transition font-medium text-sm border border-white/10 text-center">
                     Отмена
                 </a>
                 <button type="submit"
-                        class="btn btn-glow-emerald px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20">
+                        class="btn px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-[#06151B] font-semibold text-sm shadow-[0_0_20px_rgba(16,185,129,0.35)] active:scale-95">
                     Сохранить
                 </button>
             </div>
@@ -92,17 +91,17 @@
 <style type="text/tailwindcss">
     .edit-form input:not([type="file"]):not([type="checkbox"]),
     .edit-form textarea {
-        @apply w-full bg-slate-950/80 border border-white/10 rounded-2xl px-4 py-3 text-white placeholder-slate-500
-               focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30
-               transition-all duration-200 hover:border-white/20;
+        @apply w-full bg-[#0B0F19]/80 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-600
+               focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20
+               transition-all duration-300 hover:border-white/20;
     }
     .edit-form textarea {
         @apply resize-y min-h-24;
     }
     .edit-form input[type="file"] {
-        @apply w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0
-               file:text-sm file:font-semibold file:bg-indigo-500/15 file:text-indigo-300
-               hover:file:bg-indigo-500/25 file:cursor-pointer transition;
+        @apply w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
+               file:text-sm file:font-medium file:bg-emerald-500/15 file:text-emerald-300
+               hover:file:bg-emerald-500/25 file:cursor-pointer transition;
     }
     .edit-form ul.errorlist {
         @apply text-xs text-rose-400 mb-2 list-none p-0;
